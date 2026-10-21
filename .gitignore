@@ -1,0 +1,15 @@
+# node / tooling
+node_modules/
+.pnpm-store/
+*.tgz
+*.log
+
+# scratch
+.dsh-startup-work/
+.candidates/
+.publish/
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,8 @@
+# dsh-whale-startup —— a bundle patch that inserts the startup animation into the profile.
+#
+# The host half is empty on purpose: this plugin is pure browser UI. The browser
+# half is discovered through package.json's `dsh.client` declaration and served
+# as /plugins/dsh-whale-startup/client.js by the client module system.
+- insert:
+    - id: whale-startup
+      name: dsh-whale-startup

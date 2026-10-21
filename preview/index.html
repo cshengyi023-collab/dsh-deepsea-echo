@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>dsh-whale-startup · 预览</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <script>
+      /*
+       * Local preview harness for the plugin's client bundle. It reproduces the
+       * host's module-loader shim, applies the plugin with a minimal Cordis ctx,
+       * then either plays the animation or seeks to `?t=<ms>` for a still frame.
+       */
+      window.__WLA_PREVIEW__ = true;
+      const params = new URLSearchParams(location.search);
+      const stillTime = params.get("t");
+      if (stillTime !== null) window.__WLA_PREVIEW_STATIC__ = true;
+      window.__ModuleLoader__ = {
+        load(mod) {
+          window.__WLA_MOD__ = mod;
+        },
+      };
+    </script>
+    <script src="../lib/client.js"></script>
+    <script>
+      (function () {
+        const mod = window.__WLA_MOD__;
+        if (!mod) throw new Error("client bundle did not register");
+        const fakeRequire = function (name) {
+          throw new Error("preview harness has no module: " + name);
+        };
+        const exports = mod.factory(fakeRequire);
+        const disposers = [];
+        const ctx = {
+          effect(fn) {
+            const off = fn();
+            if (typeof off === "function") disposers.push(off);
+            return () => {};
+          },
+          slots: {
+            inject() {},
+            register() {
+              return () => {};
+            },
+          },
+        };
+        exports.apply(ctx);
+        const anim = window.__WLA_ANIM__;
+        window.__WLA_DISPOSE__ = () => {
+          if (anim) anim.dispose();
+          while (disposers.length) disposers.pop()();
+        };
+        if (anim && stillTime !== null) {
+          anim.pause();
+          const ms = Number(stillTime) || 0;
+          // Seek synchronously first: a headless screenshot can land before the
+          // image-decode promise settles, so every still must already be framed.
+          anim.seek(ms);
+          const images = Array.from(anim.root.querySelectorAll("img"));
+          Promise.allSettled(images.map((img) => (img.decode ? img.decode() : Promise.resolve()))).then(() => {
+            anim.seek(ms);
+            document.documentElement.setAttribute("data-wla-ready", "1");
+            document.title = "WLA-READY " + ms;
+          });
+        } else if (anim) {
+          document.documentElement.setAttribute("data-wla-ready", "1");
+          document.title = "WLA-PLAY";
+          // Replay button for hands-on review.
+          const tip = document.createElement("div");
+          tip.textContent = "点击/ESC 跳过 · 刷新重播";
+          tip.style.cssText =
+            "position:fixed;left:50%;bottom:18px;transform:translateX(-50%);font:11px/1.4 monospace;color:rgba(160,220,255,0.55);letter-spacing:.2em;z-index:2147483647;pointer-events:none";
+          document.body.appendChild(tip);
+        }
+      })();
+    </script>
+  </body>
+</html>

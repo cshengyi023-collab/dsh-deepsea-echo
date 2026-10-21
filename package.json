@@ -1,0 +1,57 @@
+{
+  "name": "dsh-whale-startup",
+  "version": "0.1.0",
+  "description": "Arknights-flavoured startup animation for the DeepSeek Harness Web GUI: a PRTS terminal boot, sonar scan, hologram lock-on and an operator file that end in a deep-sea lockup, roughly 4.6 seconds, skippable and configurable.",
+  "type": "module",
+  "main": "lib/index.js",
+  "icon": "assets/plugin-icon.png",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "engines": {
+    "dsh": ">=0.2.0-rc.2 <0.3.0-0"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "NOTICE-ARTWORK.md",
+    "LICENSE",
+    "LICENSE-ARTWORK.md",
+    "screenshots.json",
+    "assets/plugin-icon.png",
+    "assets/whale-chibi.webp",
+    "assets/whale-splash.webp",
+    "assets/screenshots"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "startup",
+    "animation",
+    "arknights",
+    "whale"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cshengyi023-collab/dsh-whale-startup.git"
+  },
+  "homepage": "https://github.com/cshengyi023-collab/dsh-whale-startup#readme",
+  "bugs": {
+    "url": "https://github.com/cshengyi023-collab/dsh-whale-startup/issues"
+  }
+}
