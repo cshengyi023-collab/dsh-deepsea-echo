@@ -1,5 +1,11 @@
 # dsh-deepsea-echo · 深海回响启动动画
 
+[![Release](https://img.shields.io/github/v/release/cshengyi023-collab/dsh-deepsea-echo?color=4d6bfe)](https://github.com/cshengyi023-collab/dsh-deepsea-echo/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-4d6bfe)](LICENSE)
+[![dsh-plugin](https://img.shields.io/badge/topic-dsh--plugin-8be8ff)](https://github.com/topics/dsh-plugin)
+[![Arknights](https://img.shields.io/badge/style-Arknights-8be8ff)](https://github.com/topics/arknights)
+[![Stars](https://img.shields.io/github/stars/cshengyi023-collab/dsh-deepsea-echo?color=4d6bfe)](https://github.com/cshengyi023-collab/dsh-deepsea-echo/stargazers)
+
 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web 界面加一段约 **4.6 秒**的
 明日方舟风格全屏启动动画：PRTS 终端自检 → 声呐扫描 → 全息锁定 → 干员档案 → 深海回响定格。
 深蓝工业 HUD、鲸鱼娘全息登录与干员档案，播放结束自动淡出进入界面。
@@ -130,9 +136,16 @@ scripts/                  构建 / 音效 / 图标 / 预览素材脚本
 A startup animation for the DeepSeek Harness Web GUI, Arknights-flavoured: a PRTS terminal boot,
 sonar scan, hologram lock-on and an operator file that end in a deep-sea lockup (about 4.6 s),
 followed by a fade into the UI. It plays full-screen on every page load, can be skipped with a
-click or `Esc`, and can be switched off, re-timed (3.6s / 4.6s / 5.0s), muted with its own
-independent sound toggle, or replayed from **Settings → 启动动画** (Startup Animation).
-A synthesized sound design follows the same timeline. Implemented as a client-only DSH plugin
-with a hand-written lazy-CJS bundle and embedded artwork/audio — no build step and no runtime
-dependencies. Code, sound and icon are MIT; the character artwork is CC BY-NC-SA 4.0
-(see `NOTICE-ARTWORK.md`).
+click or `Esc`, and can be switched off, re-timed (3.6s / 4.6s / 5.0s), replayed, or scored with
+one of **four original synthesized cues / sound off**, from three Settings entry points (the
+「启动动画」 section, the plugin's own page, and a 启动动画 tab inside Plugins).
+Implemented as a client-only DSH plugin with a hand-written lazy-CJS bundle and embedded
+artwork/audio — no build step and no runtime dependencies. Code, sound and icon are MIT; the
+character artwork is CC BY-NC-SA 4.0 (see `NOTICE-ARTWORK.md`).
+
+## 关键词 / Keywords
+
+`dsh` · `dsh-plugin` · `deepseek-harness` · `deepseek` · `arknights` · `明日方舟` · `启动动画` ·
+`开幕动画` · `开机动画` · `boot animation` · `splash screen` · `startup animation` · `鲸鱼娘` ·
+`whale girl` · `PRTS` · `声呐` · `sonar` · `干员档案` · `operator file` · `anime UI` · `web ui` ·
+`sound design` · `配乐`

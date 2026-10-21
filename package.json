@@ -1,6 +1,6 @@
 {
   "name": "dsh-deepsea-echo",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Arknights-flavoured startup animation for the DeepSeek Harness Web GUI: a PRTS terminal boot, sonar scan, hologram lock-on and an operator file ending in a deep-sea lockup, about 4.6 seconds, with four selectable original score presets (or sound off), skippable and configurable.",
   "type": "module",
   "main": "lib/index.js",
@@ -41,15 +41,24 @@
   "keywords": [
     "dsh",
     "dsh-plugin",
+    "dsh-plugin-market",
     "deepseek-harness",
-    "startup",
-    "animation",
-    "boot",
-    "splash",
+    "deepseek",
     "arknights",
+    "anime",
+    "startup",
+    "startup-animation",
+    "boot-animation",
+    "splash-screen",
     "whale",
     "whale-girl",
-    "sound"
+    "sonar",
+    "web-ui",
+    "ui",
+    "theme",
+    "animation",
+    "sound",
+    "sound-design"
   ],
   "license": "MIT",
   "repository": {
