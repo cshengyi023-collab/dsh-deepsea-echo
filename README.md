@@ -27,15 +27,21 @@
 完整动效录屏（70 帧）：[`preview/startup-animation.webp`](preview/startup-animation.webp)
 可交互预览：[`preview/index.html`](preview/index.html)（`?t=2500` 可定格在 2.5s）
 
-## 音效（Arknights 风格原创配乐）
+## 音效（4 套原创配乐，可切换 / 可关闭）
 
-启动音效是一段**代码合成的原创小配乐**（[`scripts/make-sfx.py`](scripts/make-sfx.py)，无采样、无版权素材），
-参考明日方舟 PV / 战斗音乐的听感：**D 小调、138 BPM**，暗色 pad 铺底、工业感鼓组与八分音符贝斯推进，
-副歌位置是一记铜管式 **braam** 冲击，结尾用钢琴钟声与合唱和声收束；
-同时保留终端滴答、声呐 ping、档案印章等 UI 音效，全部与分镜时间轴严格对齐。
+启动音效是**代码合成的原创配乐**（[`scripts/make-sfx.py`](scripts/make-sfx.py)，无采样、无版权素材），
+共 **4 套风格 + 关闭**，与分镜时间轴严格对齐：
 
+| 预设 | 风格 |
+| --- | --- |
+| **深海回响**（默认） | 明日方舟 PV 感的电子管弦：D 小调 138 BPM，暗色 pad、工业鼓组、八分音符贝斯、braam drop、合唱尾音 |
+| **凛冬管弦** | 弦乐 ostinato + 定音鼓 + 铜管 stab + 合唱，压迫感更强的纯管弦编制 |
+| **霓虹脉冲** | 150 BPM 工业电子：四拍底鼓、锯齿贝斯 16 分、滤波琶音、glitch 碎响、sub drop |
+| **静海氛围** | 没有鼓：暖 pad + 钢琴钟声 + 声呐 ping + 柔和收尾，适合安静的启动 |
+| **关闭** | 完全静音 |
+
+设置 →「启动动画」→「启动音效」里用按钮**五选一**（含关闭），与动画总开关互相独立。
 浏览器自动播放策略可能拦下第一次发声；被拦时保持静音、不会报错，点击一次界面后自动恢复。
-音效有**独立开关**：设置 →「启动动画」→「启动音效」，关掉后动画完全静音。
 
 ## 安装
 
@@ -79,7 +85,7 @@ dsh plugin --profile web remove dsh-deepsea-echo
 # 重新生成 lib/client.js（把 assets/ 里的立绘与音效内嵌进 bundle）
 node scripts/build.mjs
 
-# 重新合成启动音效（纯 Python，无第三方音频库）
+# 重新合成 4 套启动配乐（纯 Python，无第三方音频库）
 python scripts/make-sfx.py
 
 # 本地预览（浏览器打开，自动播放；?t=2500 定格在 2.5s）

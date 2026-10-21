@@ -29,8 +29,21 @@ window.__ModuleLoader__.load({
     const ASSET_CHIBI = __ASSET_CHIBI__;
     const ASSET_SPLASH = __ASSET_SPLASH__;
     const ASSET_GRAIN = __ASSET_GRAIN__;
-    /** Synthesized startup cue (32 kHz mono WAV inlined as a data URI). */
-    const ASSET_SFX = __ASSET_SFX__;
+    /** Four synthesized startup scores (32 kHz mono WAV, inlined as data URIs). */
+    const SFX_ASSETS = {
+      deepsea: __ASSET_SFX_DEEPSEA__,
+      orchestral: __ASSET_SFX_ORCHESTRAL__,
+      neon: __ASSET_SFX_NEON__,
+      calm: __ASSET_SFX_CALM__,
+    };
+    /** Selectable sound presets; `off` mutes the animation entirely. */
+    const SOUND_CHOICES = [
+      { key: "deepsea", label: "深海回响" },
+      { key: "orchestral", label: "凛冬管弦" },
+      { key: "neon", label: "霓虹脉冲" },
+      { key: "calm", label: "静海氛围" },
+      { key: "off", label: "关闭" },
+    ];
 
     const NS = "dsh-deepsea-echo";
     const STORAGE_KEY = "dsh-deepsea-echo:v1";
@@ -43,7 +56,7 @@ window.__ModuleLoader__.load({
       { ms: 4600, label: "4.6s" },
       { ms: 5000, label: "5.0s" },
     ];
-    const DEFAULT_SETTINGS = { enabled: true, duration: 4600, sound: true };
+    const DEFAULT_SETTINGS = { enabled: true, duration: 4600, sound: "deepsea" };
 
     /** Whale-side emblem: hexagon + whale silhouette + sonar line. */
     const WHALE_MARK =
@@ -61,7 +74,14 @@ window.__ModuleLoader__.load({
       return {
         enabled: parsed && typeof parsed.enabled === "boolean" ? parsed.enabled : DEFAULT_SETTINGS.enabled,
         duration: DURATION_CHOICES.some((c) => c.ms === parsed?.duration) ? parsed.duration : DEFAULT_SETTINGS.duration,
-        sound: parsed && typeof parsed.sound === "boolean" ? parsed.sound : DEFAULT_SETTINGS.sound,
+        sound:
+          parsed && typeof parsed.sound === "string" && SOUND_CHOICES.some((c) => c.key === parsed.sound)
+            ? parsed.sound
+            : parsed && parsed.sound === true
+              ? "deepsea"
+              : parsed && parsed.sound === false
+                ? "off"
+                : DEFAULT_SETTINGS.sound,
       };
     }
 
@@ -367,6 +387,11 @@ window.__ModuleLoader__.load({
 .wla-settings-seg button { appearance: none; border: 0; background: transparent; color: var(--dsw-alias-label-secondary, inherit); font: inherit; font-size: 12px; padding: 8px 15px; cursor: pointer; }
 .wla-settings-seg button + button { border-left: 1px solid var(--dsw-alias-border-l1, rgba(127,127,127,0.2)); }
 .wla-settings-seg button[aria-pressed="true"] { background: var(--dsw-alias-brand-primary, #4d6bfe); color: #fff; }
+.wla-settings-row-top { align-items: flex-start; }
+.wla-settings-choices { display: flex; flex-wrap: wrap; gap: 8px; flex: none; max-width: 400px; justify-content: flex-end; }
+.wla-settings-choice { appearance: none; border: 1px solid var(--dsw-alias-border-l1, rgba(127,127,127,0.25)); border-radius: 999px; background: transparent; color: var(--dsw-alias-label-secondary, inherit); font: inherit; font-size: 12px; padding: 7px 13px; cursor: pointer; white-space: nowrap; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+.wla-settings-choice:hover { background: var(--dsw-alias-bg-layer-1, rgba(127,127,127,0.12)); }
+.wla-settings-choice[aria-pressed="true"] { background: var(--dsw-alias-brand-primary, #4d6bfe); border-color: var(--dsw-alias-brand-primary, #4d6bfe); color: #fff; }
 .wla-settings-action { appearance: none; border: 1px solid var(--dsw-alias-border-l2, rgba(127,127,127,0.3)); border-radius: 9px; background: transparent; color: var(--dsw-alias-label-primary, inherit); font: inherit; font-size: 12.5px; padding: 8px 18px; cursor: pointer; transition: background 0.16s ease, border-color 0.16s ease; }
 .wla-settings-action:hover { background: var(--dsw-alias-bg-layer-1, rgba(127,127,127,0.12)); }
 .wla-settings-note { margin: 0; font-size: 11.5px; letter-spacing: 0.02em; color: var(--dsw-alias-label-secondary, inherit); opacity: 0.85; }
@@ -696,7 +721,7 @@ window.__ModuleLoader__.load({
      * Autoplay may be refused before the first user gesture: in that case the
      * cue simply stays silent instead of raising, and a single gesture retries.
      */
-    function createSoundDesign(rate) {
+    function createSoundDesign(rate, presetKey) {
       let ctx = null;
       let master = null;
       let bufferPromise = null;
@@ -725,7 +750,8 @@ window.__ModuleLoader__.load({
             try {
               // Decode the embedded WAV straight from base64: no fetch, no
               // network/CSP dependency, works on any page origin.
-              const base64 = ASSET_SFX.slice(ASSET_SFX.indexOf(",") + 1);
+              const asset = SFX_ASSETS[presetKey] || "";
+              const base64 = asset.slice(asset.indexOf(",") + 1);
               const binary = atob(base64);
               const bytes = new Uint8Array(binary.length);
               for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
@@ -825,7 +851,13 @@ window.__ModuleLoader__.load({
       const preview = options.preview === true;
       const chosenDuration = DURATION_CHOICES.some((c) => c.ms === options.duration) ? options.duration : DEFAULT_SETTINGS.duration;
       const speed = BASE_MS / chosenDuration;
-      const sound = options.sound === true ? createSoundDesign(speed) : null;
+      const preset =
+        typeof options.sound === "string"
+          ? options.sound
+          : options.sound === true
+            ? "deepsea"
+            : "off";
+      const sound = preset !== "off" && SFX_ASSETS[preset] ? createSoundDesign(speed, preset) : null;
 
       const root = document.createElement("div");
       root.className = "wla-root";
@@ -1376,16 +1408,30 @@ window.__ModuleLoader__.load({
           ),
           h(
             "div",
-            { className: "wla-settings-row" },
-            h("div", { className: "wla-settings-row-main" }, h("b", null, "启动音效"), h("small", null, "明日方舟风格原创配乐 + 终端滴答 / 声呐 / 印章音效，独立开关；关闭后动画完全静音。")),
-            h("button", {
-              type: "button",
-              role: "switch",
-              className: "wla-settings-switch",
-              "aria-checked": settings.sound ? "true" : "false",
-              "aria-label": "启动音效",
-              onClick: () => apply({ sound: !settings.sound }),
-            }),
+            { className: "wla-settings-row wla-settings-row-top" },
+            h(
+              "div",
+              { className: "wla-settings-row-main" },
+              h("b", null, "启动音效"),
+              h("small", null, "四套原创配乐任选，也可以直接关闭；与上面的动画总开关互相独立。"),
+            ),
+            h(
+              "div",
+              { className: "wla-settings-choices" },
+              SOUND_CHOICES.map((choice) =>
+                h(
+                  "button",
+                  {
+                    key: choice.key,
+                    type: "button",
+                    className: "wla-settings-choice",
+                    "aria-pressed": settings.sound === choice.key ? "true" : "false",
+                    onClick: () => apply({ sound: choice.key }),
+                  },
+                  choice.label,
+                ),
+              ),
+            ),
           ),
           h(
             "div",
@@ -1424,7 +1470,7 @@ window.__ModuleLoader__.load({
       if (active) return active;
       const anim = createStartupAnimation({
         duration: settings ? settings.duration : DEFAULT_SETTINGS.duration,
-        sound: preview ? false : settings ? settings.sound !== false : DEFAULT_SETTINGS.sound,
+        sound: preview ? "off" : settings ? settings.sound : DEFAULT_SETTINGS.sound,
         preview,
         autoplay: !(preview && window.__WLA_PREVIEW_STATIC__ === true),
       });
@@ -1465,7 +1511,7 @@ window.__ModuleLoader__.load({
         mountAnimation(
           {
             duration: opts.duration || stored.duration,
-            sound: preview ? false : opts.sound === undefined ? stored.sound : opts.sound,
+            sound: preview ? "off" : opts.sound === undefined ? stored.sound : opts.sound,
           },
           preview,
         );
