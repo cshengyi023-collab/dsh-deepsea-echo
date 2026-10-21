@@ -1,6 +1,6 @@
 {
   "name": "dsh-deepsea-echo",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Arknights-flavoured startup animation for the DeepSeek Harness Web GUI: a PRTS terminal boot, sonar scan, hologram lock-on and an operator file ending in a deep-sea lockup, about 4.6 seconds, with four selectable original score presets (or sound off), skippable and configurable.",
   "type": "module",
   "main": "lib/index.js",
