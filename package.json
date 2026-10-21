@@ -1,7 +1,7 @@
 {
-  "name": "dsh-whale-startup",
-  "version": "0.1.0",
-  "description": "Arknights-flavoured startup animation for the DeepSeek Harness Web GUI: a PRTS terminal boot, sonar scan, hologram lock-on and an operator file that end in a deep-sea lockup, roughly 4.6 seconds, skippable and configurable.",
+  "name": "dsh-deepsea-echo",
+  "version": "0.2.0",
+  "description": "Arknights-flavoured startup animation for the DeepSeek Harness Web GUI: a PRTS terminal boot, sonar scan, hologram lock-on and an operator file ending in a deep-sea lockup, about 4.6 seconds, with an optional synthesized sound design, skippable and configurable.",
   "type": "module",
   "main": "lib/index.js",
   "icon": "assets/plugin-icon.png",
@@ -32,8 +32,10 @@
     "LICENSE-ARTWORK.md",
     "screenshots.json",
     "assets/plugin-icon.png",
+    "assets/icon-512.png",
     "assets/whale-chibi.webp",
     "assets/whale-splash.webp",
+    "assets/sfx",
     "assets/screenshots"
   ],
   "keywords": [
@@ -42,16 +44,20 @@
     "deepseek-harness",
     "startup",
     "animation",
+    "boot",
+    "splash",
     "arknights",
-    "whale"
+    "whale",
+    "whale-girl",
+    "sound"
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cshengyi023-collab/dsh-whale-startup.git"
+    "url": "git+https://github.com/cshengyi023-collab/dsh-deepsea-echo.git"
   },
-  "homepage": "https://github.com/cshengyi023-collab/dsh-whale-startup#readme",
+  "homepage": "https://github.com/cshengyi023-collab/dsh-deepsea-echo#readme",
   "bugs": {
-    "url": "https://github.com/cshengyi023-collab/dsh-whale-startup/issues"
+    "url": "https://github.com/cshengyi023-collab/dsh-deepsea-echo/issues"
   }
 }

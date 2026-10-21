@@ -1,10 +1,11 @@
 /**
- * dsh-whale-startup — browser half.
+ * dsh-deepsea-echo — browser half.
  *
  * A full-screen PRTS-flavoured startup sequence for the DSH web GUI:
  *   terminal boot log → sonar search → hologram lock-on of the whale girl →
  *   operator file splash with the full-body illustration → deep-sea lockup →
- *   fade into the UI.
+ *   fade into the UI. A synthesized cue (terminal ticks, sonar pings, a riser
+ *   and a final chime) follows the same timeline and has its own settings toggle.
  *
  * The bundle is plain JavaScript in the host's lazy-CJS module-loader form
  * (`window.__ModuleLoader__.load({ id, factory })`). Everything it needs is
@@ -17,7 +18,7 @@
  */
 
 window.__ModuleLoader__.load({
-  id: "dsh-whale-startup",
+  id: "dsh-deepsea-echo",
   factory: (require) => {
     var module = { exports: {} };
     var exports = module.exports;
@@ -28,9 +29,13 @@ window.__ModuleLoader__.load({
     const ASSET_CHIBI = __ASSET_CHIBI__;
     const ASSET_SPLASH = __ASSET_SPLASH__;
     const ASSET_GRAIN = __ASSET_GRAIN__;
+    /** Synthesized startup cue (32 kHz mono WAV inlined as a data URI). */
+    const ASSET_SFX = __ASSET_SFX__;
 
-    const NS = "dsh-whale-startup";
-    const STORAGE_KEY = "dsh-whale-startup:v1";
+    const NS = "dsh-deepsea-echo";
+    const STORAGE_KEY = "dsh-deepsea-echo:v1";
+    /** Settings written by the 0.1.x "dsh-whale-startup" build, migrated once. */
+    const LEGACY_STORAGE_KEY = "dsh-whale-startup:v1";
     /** Base storyboard length in ms; the selected duration scales this timeline. */
     const BASE_MS = 4600;
     const DURATION_CHOICES = [
@@ -38,7 +43,7 @@ window.__ModuleLoader__.load({
       { ms: 4600, label: "4.6s" },
       { ms: 5000, label: "5.0s" },
     ];
-    const DEFAULT_SETTINGS = { enabled: true, duration: 4600 };
+    const DEFAULT_SETTINGS = { enabled: true, duration: 4600, sound: true };
 
     /** Whale-side emblem: hexagon + whale silhouette + sonar line. */
     const WHALE_MARK =
@@ -51,15 +56,29 @@ window.__ModuleLoader__.load({
     //#endregion
 
     //#region settings storage
+    /** Validate a stored settings object (also used when migrating the legacy key). */
+    function normalizeSettings(parsed) {
+      return {
+        enabled: parsed && typeof parsed.enabled === "boolean" ? parsed.enabled : DEFAULT_SETTINGS.enabled,
+        duration: DURATION_CHOICES.some((c) => c.ms === parsed?.duration) ? parsed.duration : DEFAULT_SETTINGS.duration,
+        sound: parsed && typeof parsed.sound === "boolean" ? parsed.sound : DEFAULT_SETTINGS.sound,
+      };
+    }
+
     /** Read persisted preferences, falling back to defaults on any corruption. */
     function readSettings() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return { ...DEFAULT_SETTINGS };
-        const parsed = JSON.parse(raw);
-        const enabled = parsed && typeof parsed.enabled === "boolean" ? parsed.enabled : DEFAULT_SETTINGS.enabled;
-        const duration = DURATION_CHOICES.some((c) => c.ms === parsed?.duration) ? parsed.duration : DEFAULT_SETTINGS.duration;
-        return { enabled, duration };
+        if (!raw) {
+          const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+          if (legacy) {
+            const migrated = normalizeSettings(JSON.parse(legacy));
+            writeSettings(migrated);
+            return migrated;
+          }
+          return { ...DEFAULT_SETTINGS };
+        }
+        return normalizeSettings(JSON.parse(raw));
       } catch {
         return { ...DEFAULT_SETTINGS };
       }
@@ -67,10 +86,7 @@ window.__ModuleLoader__.load({
 
     /** Persist preferences; storage failures (private mode) never break the UI. */
     function writeSettings(next) {
-      const value = {
-        enabled: typeof next.enabled === "boolean" ? next.enabled : DEFAULT_SETTINGS.enabled,
-        duration: DURATION_CHOICES.some((c) => c.ms === next.duration) ? next.duration : DEFAULT_SETTINGS.duration,
-      };
+      const value = normalizeSettings(next);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
       } catch {
@@ -674,11 +690,133 @@ window.__ModuleLoader__.load({
     }
     //#endregion
 
+    //#region sound design
+    /**
+     * Play the synthesized startup cue in sync with the storyboard.
+     * Autoplay may be refused before the first user gesture: in that case the
+     * cue simply stays silent instead of raising, and a single gesture retries.
+     */
+    function createSoundDesign(rate) {
+      let ctx = null;
+      let master = null;
+      let bufferPromise = null;
+      let source = null;
+      let disposed = false;
+      let gestureHooked = false;
+
+      function ensureContext() {
+        if (ctx) return ctx;
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return null;
+        try {
+          ctx = new AudioCtor();
+        } catch {
+          return null;
+        }
+        master = ctx.createGain();
+        master.gain.value = 0.55;
+        master.connect(ctx.destination);
+        return ctx;
+      }
+
+      function loadBuffer() {
+        if (!bufferPromise) {
+          bufferPromise = fetch(ASSET_SFX)
+            .then((response) => response.arrayBuffer())
+            .then((bytes) => ctx.decodeAudioData(bytes))
+            .catch(() => null);
+        }
+        return bufferPromise;
+      }
+
+      function playBuffer(buffer) {
+        if (disposed || !ctx || !buffer || source) return;
+        try {
+          source = ctx.createBufferSource();
+          source.buffer = buffer;
+          source.playbackRate.value = rate;
+          source.connect(master);
+          source.start();
+        } catch {
+          source = null;
+        }
+      }
+
+      function resumeWithGesture(buffer) {
+        if (gestureHooked || disposed) return;
+        gestureHooked = true;
+        const kick = () => {
+          window.removeEventListener("pointerdown", kick, true);
+          window.removeEventListener("keydown", kick, true);
+          if (disposed || !ctx) return;
+          ctx.resume().then(() => playBuffer(buffer)).catch(() => {});
+        };
+        window.addEventListener("pointerdown", kick, true);
+        window.addEventListener("keydown", kick, true);
+      }
+
+      function start() {
+        const audio = ensureContext();
+        if (!audio) return;
+        loadBuffer().then((buffer) => {
+          if (disposed || !buffer) return;
+          if (audio.state === "running") {
+            playBuffer(buffer);
+            return;
+          }
+          audio
+            .resume()
+            .then(() => {
+              if (audio.state === "running") playBuffer(buffer);
+              else resumeWithGesture(buffer);
+            })
+            .catch(() => resumeWithGesture(buffer));
+        });
+      }
+
+      function stop(fade) {
+        if (!ctx || !master) return;
+        try {
+          const now = ctx.currentTime;
+          const end = now + (fade === undefined ? 0.14 : fade);
+          master.gain.cancelScheduledValues(now);
+          master.gain.setValueAtTime(master.gain.value, now);
+          master.gain.linearRampToValueAtTime(0.0001, end);
+          if (source) source.stop(end + 0.05);
+        } catch {
+          /* ignore */
+        }
+        source = null;
+      }
+
+      function dispose() {
+        if (disposed) return;
+        disposed = true;
+        try {
+          if (source) source.stop();
+        } catch {
+          /* ignore */
+        }
+        source = null;
+        try {
+          if (ctx) ctx.close();
+        } catch {
+          /* ignore */
+        }
+        ctx = null;
+        master = null;
+      }
+
+      return { start, stop, dispose };
+    }
+    //#endregion
+
     //#region animation controller
     function createStartupAnimation(options) {
       const preview = options.preview === true;
       const chosenDuration = DURATION_CHOICES.some((c) => c.ms === options.duration) ? options.duration : DEFAULT_SETTINGS.duration;
       const speed = BASE_MS / chosenDuration;
+      const sound = options.sound === true ? createSoundDesign(speed) : null;
 
       const root = document.createElement("div");
       root.className = "wla-root";
@@ -1024,7 +1162,7 @@ window.__ModuleLoader__.load({
           raf = requestAnimationFrame(frame);
         } catch (error) {
           // A failed frame must never leave the overlay covering the app.
-          console.warn("[dsh-whale-startup] frame failed, dismissing the overlay:", error);
+          console.warn("[dsh-deepsea-echo] frame failed, dismissing the overlay:", error);
           finish();
         }
       }
@@ -1033,6 +1171,7 @@ window.__ModuleLoader__.load({
         if (skipped || disposed) return;
         if (baseNow() + offset < 300) return;
         skipped = true;
+        if (sound) sound.stop(0.2);
         offset += BASE_MS - 320 - (baseNow() + offset);
         if (!raf && !paused) raf = requestAnimationFrame(frame);
       }
@@ -1051,6 +1190,7 @@ window.__ModuleLoader__.load({
         if (raf) cancelAnimationFrame(raf);
         raf = 0;
         removeListeners();
+        if (sound) sound.dispose();
         if (root.parentNode) root.parentNode.removeChild(root);
         finishCallbacks.forEach((cb) => {
           try {
@@ -1143,6 +1283,7 @@ window.__ModuleLoader__.load({
           if (disposed) return;
           startAt = performance.now();
           offset = 0;
+          if (sound) sound.start();
           raf = requestAnimationFrame(frame);
         };
         ready.then(kick, kick);
@@ -1187,7 +1328,7 @@ window.__ModuleLoader__.load({
               null,
               "每次打开或刷新 DSH 界面时，播放一段约 " +
                 (settings.duration / 1000).toFixed(1) +
-                " 秒的深海鲸鱼娘启动动画：终端自检 → 声呐搜索 → 全息锁定 → 干员档案 → 深海回响。播放中点击任意位置或按 Esc 可跳过。",
+                " 秒的深海鲸鱼娘启动动画：终端自检 → 声呐搜索 → 全息锁定 → 干员档案 → 深海回响。播放中点击任意位置或按 Esc 可跳过；音效可在下面单独开关。",
             ),
           ),
           h(
@@ -1227,13 +1368,26 @@ window.__ModuleLoader__.load({
           h(
             "div",
             { className: "wla-settings-row" },
-            h("div", { className: "wla-settings-row-main" }, h("b", null, "立即预览"), h("small", null, "马上完整播放一遍，不影响下次启动。")),
-            h("button", { type: "button", className: "wla-settings-action", onClick: () => hooks.replay(settings.duration) }, "重播动画"),
+            h("div", { className: "wla-settings-row-main" }, h("b", null, "启动音效"), h("small", null, "独立开关：终端滴答、声呐、档案印章与结尾重音。关闭后动画完全静音。")),
+            h("button", {
+              type: "button",
+              role: "switch",
+              className: "wla-settings-switch",
+              "aria-checked": settings.sound ? "true" : "false",
+              "aria-label": "启动音效",
+              onClick: () => apply({ sound: !settings.sound }),
+            }),
+          ),
+          h(
+            "div",
+            { className: "wla-settings-row" },
+            h("div", { className: "wla-settings-row-main" }, h("b", null, "立即预览"), h("small", null, "马上完整播放一遍（含音效设置），不影响下次启动。")),
+            h("button", { type: "button", className: "wla-settings-action", onClick: () => hooks.replay({ duration: settings.duration, sound: settings.sound }) }, "重播动画"),
           ),
           h(
             "p",
             { className: "wla-settings-note" },
-            "美术素材：鲸鱼娘 © 上善 / ZipZipPipe / Small-tailqwq（CC BY-NC-SA 4.0，仅本地个人使用）。动画代码 MIT。",
+            "美术素材：鲸鱼娘 © 上善 / ZipZipPipe / Small-tailqwq（CC BY-NC-SA 4.0，非商业使用）。动画代码与合成音效 MIT。",
           ),
         );
       }
@@ -1242,7 +1396,7 @@ window.__ModuleLoader__.load({
         ctx.slots.register(
           {
             name: "settings.section",
-            id: "whale-startup",
+            id: "deepsea-echo",
             order: 45,
             label: () => "启动动画",
           },
@@ -1261,6 +1415,7 @@ window.__ModuleLoader__.load({
       if (active) return active;
       const anim = createStartupAnimation({
         duration: settings ? settings.duration : DEFAULT_SETTINGS.duration,
+        sound: preview ? false : settings ? settings.sound !== false : DEFAULT_SETTINGS.sound,
         preview,
         autoplay: !(preview && window.__WLA_PREVIEW_STATIC__ === true),
       });
@@ -1293,9 +1448,18 @@ window.__ModuleLoader__.load({
       mountedStyle = null;
     }
 
-    function replay(duration, preview) {
+    function replay(options, preview) {
       installStyles();
-      const next = () => mountAnimation({ duration: duration || readSettings().duration }, preview);
+      const stored = readSettings();
+      const opts = typeof options === "number" ? { duration: options } : options || {};
+      const next = () =>
+        mountAnimation(
+          {
+            duration: opts.duration || stored.duration,
+            sound: preview ? false : opts.sound === undefined ? stored.sound : opts.sound,
+          },
+          preview,
+        );
       if (active) {
         active.onFinished(next);
         active.skip();
@@ -1309,7 +1473,7 @@ window.__ModuleLoader__.load({
       const preview = typeof window !== "undefined" && window.__WLA_PREVIEW__ === true;
       installStyles();
       try {
-        window.__WHALE_STARTUP__ = (duration) => replay(duration, preview);
+        window.__DEEPSEA_ECHO__ = (options) => replay(options, preview);
       } catch {
         /* ignore */
       }
@@ -1328,10 +1492,10 @@ window.__ModuleLoader__.load({
           installSettingsSection(ctx, react, {
             readSettings,
             writeSettings,
-            replay: (duration) => replay(duration, false),
+            replay: (options) => replay(options, false),
           });
         } catch (error) {
-          console.warn("[dsh-whale-startup] settings section unavailable:", error);
+          console.warn("[dsh-deepsea-echo] settings section unavailable:", error);
         }
       }
 
@@ -1342,19 +1506,19 @@ window.__ModuleLoader__.load({
             active = null;
             removeStyles();
             try {
-              delete window.__WHALE_STARTUP__;
+              delete window.__DEEPSEA_ECHO__;
             } catch {
               /* ignore */
             }
           };
         },
-        "dsh-whale-startup: startup overlay",
+        "dsh-deepsea-echo: startup overlay",
       );
     }
 
     exports.apply = apply;
     exports.inject = ["slots"];
-    exports.name = "whale-startup";
+    exports.name = "deepsea-echo";
     exports.__internal = { createStartupAnimation, buildMarkup, readSettings, writeSettings, BASE_MS };
     return module.exports;
   },

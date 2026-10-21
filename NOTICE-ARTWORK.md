@@ -1,6 +1,15 @@
 # 美术素材署名 / Artwork attribution
 
 本插件的**代码**按 MIT 许可（见 [`LICENSE`](LICENSE)）。
+
+以下内容由仓库自身生成，按 MIT 许可，不涉及第三方权利：
+
+- `assets/sfx/startup.wav`：启动音效，由 [`scripts/make-sfx.py`](scripts/make-sfx.py)
+  用纯数学合成（无采样素材）；
+- `assets/icon-source.svg` → `assets/plugin-icon.png` / `assets/icon-512.png`：
+  插件图标，矢量绘制 + 无头浏览器渲染；
+- `lib/client.js` 中的界面装饰、Canvas 粒子、HUD 图形等均由代码绘制。
+
 `lib/client.js` 内嵌的两张角色立绘（Q 版鲸鱼娘 `assets/whale-chibi.webp`、招手女仆款全身鲸鱼娘
 `assets/whale-splash.webp`）**不适用 MIT**，其权利属于下列作者，按
 **CC BY-NC-SA 4.0** 使用（署名 / 非商业 / 相同方式共享）。
