@@ -1377,7 +1377,7 @@ window.__ModuleLoader__.load({
           h(
             "div",
             { className: "wla-settings-row" },
-            h("div", { className: "wla-settings-row-main" }, h("b", null, "启动音效"), h("small", null, "独立开关：终端滴答、声呐、档案印章与结尾重音。关闭后动画完全静音。")),
+            h("div", { className: "wla-settings-row-main" }, h("b", null, "启动音效"), h("small", null, "明日方舟风格原创配乐 + 终端滴答 / 声呐 / 印章音效，独立开关；关闭后动画完全静音。")),
             h("button", {
               type: "button",
               role: "switch",
