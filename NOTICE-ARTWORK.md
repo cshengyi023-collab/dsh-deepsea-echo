@@ -43,3 +43,10 @@
 - 裁掉透明留白（trim），等比缩放到 488×456（Q 版）与 829×1500（全身）；
 - 转码为 WebP（质量 90–92）以便内嵌进浏览器端 bundle；
 - 动画中的调色、遮罩、扫描线、RGB 分离等**均为运行时 CSS/SVG/Canvas 效果**，不修改像素源文件。
+
+以下内容为品牌标识，不属于 MIT 授权范围：
+
+- **DeepSeek 鲸鱼标志**（`assets/deepseek-mark.svg`，并用于启动动画中的品牌徽记与背景剪影）：
+  商标与版权归 **DeepSeek（深度求索）** 所有，路径数据取自
+  [Simple Icons](https://simpleicons.org/)（CC0 描述）。本项目仅将其用于标识 DeepSeek Harness
+  生态与产品身份，不主张任何商标权。

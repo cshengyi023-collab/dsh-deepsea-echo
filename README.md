@@ -9,6 +9,8 @@
 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web 界面加一段约 **4.6 秒**的
 明日方舟风格全屏启动动画：PRTS 终端自检 → 声呐扫描 → 全息锁定 → 干员档案 → 深海回响定格。
 深蓝工业 HUD、鲸鱼娘全息登录与干员档案，播放结束自动淡出进入界面。
+画面中的品牌徽记与背景剪影使用 **DeepSeek 官方鲸鱼标志**（商标归 DeepSeek，仅用于标识
+DeepSeek Harness 生态；见 [`NOTICE-ARTWORK.md`](NOTICE-ARTWORK.md)）。
 
 > 每次打开或刷新 DSH Web 页面时自动播放；**点击任意位置 / 按 Esc 立即跳过**；
 > 设置 →「启动动画」里可以关掉、改时长（3.6s / 4.6s / 5.0s）、**单独开关启动音效**、立即重播。
