@@ -721,10 +721,19 @@ window.__ModuleLoader__.load({
 
       function loadBuffer() {
         if (!bufferPromise) {
-          bufferPromise = fetch(ASSET_SFX)
-            .then((response) => response.arrayBuffer())
-            .then((bytes) => ctx.decodeAudioData(bytes))
-            .catch(() => null);
+          bufferPromise = new Promise((resolve) => {
+            try {
+              // Decode the embedded WAV straight from base64: no fetch, no
+              // network/CSP dependency, works on any page origin.
+              const base64 = ASSET_SFX.slice(ASSET_SFX.indexOf(",") + 1);
+              const binary = atob(base64);
+              const bytes = new Uint8Array(binary.length);
+              for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+              ctx.decodeAudioData(bytes.buffer, (buffer) => resolve(buffer), () => resolve(null));
+            } catch {
+              resolve(null);
+            }
+          });
         }
         return bufferPromise;
       }
